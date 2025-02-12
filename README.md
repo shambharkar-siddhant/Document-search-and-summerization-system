@@ -1,6 +1,7 @@
 # Document Search and Summarization System
 
 The Document Search and Summarization System processes PDF files, indexes their contents using vector embeddings, and provides fast, smart search with automatic summarization. 
+
 ---
 
 ## Overview
