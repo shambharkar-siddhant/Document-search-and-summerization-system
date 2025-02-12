@@ -55,7 +55,7 @@ The Document Search and Summarization System processes PDF files, indexes their 
 
 ### 1. Upload PDF File
 
-- **Endpoint:** `/ingest`
+- **Endpoint:** `/upload`
 - **Purpose:**  
   Upload a PDF file to be processed.
 - **Request Details:**  
@@ -65,7 +65,7 @@ The Document Search and Summarization System processes PDF files, indexes their 
   ```json
   {
     "status": "success",
-    "message": "File uploaded. Processing will be done in background."
+    "message": "File uploaded successfully."
   }
   ```
 

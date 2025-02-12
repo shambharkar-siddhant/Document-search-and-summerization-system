@@ -125,7 +125,7 @@ def upload():
     conn.commit()
     conn.close()
 
-    return jsonify({"status": "success", "message": "File uploaded. Processing will be done in background."})
+    return jsonify({"status": "File uploaded successfully."})
 
 # Merged /search endpoint: perform search and, if needed, summarize long results.
 @app.route('/search', methods=['POST'])

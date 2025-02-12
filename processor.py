@@ -6,17 +6,14 @@ import sqlite3
 import fitz  # PyMuPDF
 import numpy as np
 import faiss
-from datetime import datetime
 from langchain_openai import OpenAIEmbeddings
 
-# Database and persistent index file settings
 DATABASE_FILE = "database.db"
 PERSISTENT_INDEX_FILE = "faiss_index.bin"
 METADATA_FILE = "metadata.json"
-api_key = "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"
+api_key = os.getenv("OPENAI_API_KEY")
 
 
-# Initialize the SQLite database (if not already created)
 def init_db():
     conn = sqlite3.connect(DATABASE_FILE)
     c = conn.cursor()
@@ -40,13 +37,9 @@ def init_db():
 
 init_db()
 
-# DocumentParser uses PyMuPDF to split a PDF into overlapping text chunks
 class DocumentParser:
     @staticmethod
     def parse_pdf(file_path, chunk_size=500, overlap=50):
-        """
-        Parse a PDF file and split each page into overlapping chunks.
-        """
         doc = fitz.open(file_path)
         chunks = []
         for page_num in range(len(doc)):
@@ -65,11 +58,9 @@ class DocumentParser:
                 start += (chunk_size - overlap)
         return chunks
 
-# Initialize the OpenAI embedding model; ensure OPENAI_API_KEY is set in your environment.
 embedding_model = OpenAIEmbeddings(openai_api_key=api_key)
 
 def update_job_status(job_id, status):
-    """Update the status of a job in the database."""
     conn = sqlite3.connect(DATABASE_FILE)
     c = conn.cursor()
     c.execute("UPDATE jobs SET status=? WHERE id=?", (status, job_id))
@@ -77,10 +68,6 @@ def update_job_status(job_id, status):
     conn.close()
 
 def update_persistent_index():
-    """
-    Rebuilds the FAISS index from the documents in the database
-    and saves the index and associated metadata (doc_id, page_num, text) to disk.
-    """
     conn = sqlite3.connect(DATABASE_FILE)
     c = conn.cursor()
     c.execute("SELECT id, doc_id, page_num, text, embedding FROM documents")
@@ -110,9 +97,8 @@ def update_persistent_index():
     index = faiss.IndexFlatL2(dim)
     index.add(embeddings_np)
 
-    # Save the FAISS index to disk
     faiss.write_index(index, PERSISTENT_INDEX_FILE)
-    # Save the metadata as JSON
+
     with open(METADATA_FILE, "w") as f:
         json.dump(metadata, f)
 
@@ -150,10 +136,6 @@ def process_job(job_id, filepath):
     update_persistent_index()
 
 def poll_jobs():
-    """
-    Continuously poll the database for pending jobs.
-    When a pending job is found, update its status and process it.
-    """
     while True:
         conn = sqlite3.connect(DATABASE_FILE)
         c = conn.cursor()
@@ -168,9 +150,9 @@ def poll_jobs():
                 update_job_status(job_id, "processing")
                 process_job(job_id, filepath)
         else:
-            print("No pending jobs. Sleeping...")
+           continue
         
-        time.sleep(5)  # Poll every 5 seconds
+        time.sleep(1)
 
 if __name__ == '__main__':
     print("Starting processor...")
