@@ -1,7 +1,6 @@
 # Document Search and Summarization System
 
-The Document Search and Summarization System processes PDF files, indexes their contents using vector embeddings, and provides fast, smart search with automatic summarization. Heavy processing is done in the background so that users get quick responses to their queries.
-
+The Document Search and Summarization System processes PDF files, indexes their contents using vector embeddings, and provides fast, smart search with automatic summarization. 
 ---
 
 ## Overview
@@ -38,16 +37,12 @@ The Document Search and Summarization System processes PDF files, indexes their 
 
 ## Setup and Launch
 
-1. **Prerequisites:**
-   - Python 3.7 or later
-   - Required packages: Flask, faiss-cpu, PyMuPDF, langchain-openai, OpenAI, and SQLite (built into Python)
+1. **Requirements:**
+   - Flask, faiss-cpu, PyMuPDF, langchain-openai, OpenAI, and SQLite (built into Python)
    - An OpenAI API key stored in the `OPENAI_API_KEY` environment variable
 
-2. **Installation:**  
-   Install the necessary dependencies using pip.
-
-3. **Launching the System:**  
-   Use the provided launch script to set the OpenAI API key, start the API server and background processor, and ensure all processes shut down cleanly when the script is closed.
+2. **Launching the System:**  
+   launch provided bash launch script to start the server and processor both programs. set OPENAI_API_KEY in the launch script to it will be accessible to programs.
 
 ---
 
@@ -60,7 +55,7 @@ The Document Search and Summarization System processes PDF files, indexes their 
   Upload a PDF file to be processed.
 - **Request Details:**  
   - **Method:** POST  
-  - **Body:** A file named `file_to_upload.pdf` (submitted as form-data)
+  - **Body:**  `file_to_upload.pdf` (submitted as form-data)
 - **Example Response:**  
   ```json
   {
@@ -112,9 +107,5 @@ A separate processor continuously polls the database for new files, extracts tex
 
 ### Process Control:
 A launch script manages the environment setup and starts/stops both the API server and the background processor.
-
----
-
-This system is designed for efficiency and scalability, ensuring that users receive prompt search responses while heavy processing tasks are handled asynchronously in the background.
 
 ---
