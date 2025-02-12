@@ -1,102 +1,120 @@
 # Document Search and Summarization System
 
-The Document Search and Summarization System is a backend solution that processes PDF files, indexes their contents using vector embeddings, and provides fast, semantic search with automatic summarization of long results. The system separates heavy processing from user interactions to ensure that search queries receive prompt responses.
+The Document Search and Summarization System processes PDF files, indexes their contents using vector embeddings, and provides fast, smart search with automatic summarization. Heavy processing is done in the background so that users get quick responses to their queries.
 
 ---
 
 ## Overview
 
 - **API Server:**  
-  Provides REST API endpoints to accept PDF file uploads and perform semantic search. Uploaded files are stored and recorded as processing jobs, while search queries are answered using a persistent vector index.
+  The API server provides REST endpoints for uploading PDF files and searching for content. Uploaded files are stored and marked for processing, while search queries use a pre-built index to quickly return the best match.
 
 - **Background Processor:**  
-  Continuously monitors a database for new document processing jobs. It extracts text from PDFs, splits the text into overlapping chunks, computes vector embeddings, and builds a persistent FAISS index along with associated metadata.
+  A background process watches for new file uploads. It extracts text from PDFs, divides the text into overlapping chunks, computes vector embeddings, and builds an efficient search index (using FAISS) along with metadata.
 
 - **Persistent Indexing:**  
-  A FAISS index (with metadata) is maintained on disk. The API server loads these files into memory to serve search queries quickly without rebuilding the index on every request.
+  The system maintains a persistent FAISS index and a metadata file on disk. The API server loads these files into memory to deliver fast search responses without rebuilding the index every time.
 
 - **Process Management:**  
-  A launch script sets the required environment variable, starts both the API server and the background processor, and ensures that all processes are terminated when the script is closed.
+  A launch script sets up the required environment variables, starts both the API server and the background processor, and ensures that all processes are cleanly terminated when the script is closed.
 
 ---
 
 ## Features
 
 - **Efficient Document Ingestion:**  
-  PDF files are parsed using PyMuPDF and divided into overlapping text chunks. Each chunk is converted into a vector embedding and stored for rapid retrieval.
+  PDF files are read using PyMuPDF and split into manageable, overlapping text chunks. Each chunk is converted into a vector embedding for rapid lookup.
 
-- **Semantic Search and Summarization:**  
-  User queries are transformed into vector embeddings and matched against the persistent FAISS index. If the retrieved text exceeds a specified word limit, it is automatically summarized using a large language model (LLM).
+- **Smart Search and Summarization:**  
+  User queries are transformed into vector embeddings and matched against the stored index. If the returned text is too long, it is automatically summarized by a language model.
 
-- **Background Processing:**  
-  Intensive processing tasks (text extraction, embedding computation, and index updating) are handled asynchronously by a separate processor.
+- **Asynchronous Background Processing:**  
+  Intensive tasks like text extraction, embedding computation, and index updating are performed in the background so that the API responds quickly to users.
 
-- **Robust Process Management:**  
-  A dedicated launch script manages environment setup and the start/stop of the API server and processor processes.
+- **Robust Process Control:**  
+  A dedicated launch script manages the entire system, ensuring smooth startup and shutdown of all processes.
 
 ---
 
 ## Setup and Launch
 
-1. **Prerequisites:**  
-   - Python 3.7 or later  
-   - Required packages: Flask, faiss-cpu, PyMuPDF, langchain-openai, OpenAI, and SQLite (standard with Python)  
-   - An OpenAI API key set in the `OPENAI_API_KEY` environment variable
+1. **Prerequisites:**
+   - Python 3.7 or later
+   - Required packages: Flask, faiss-cpu, PyMuPDF, langchain-openai, OpenAI, and SQLite (built into Python)
+   - An OpenAI API key stored in the `OPENAI_API_KEY` environment variable
 
 2. **Installation:**  
    Install the necessary dependencies using pip.
 
 3. **Launching the System:**  
-   Use the provided launch script to set the OpenAI API key, start the API server and background processor, and ensure that all processes are terminated when the script is closed.
+   Use the provided launch script to set the OpenAI API key, start the API server and background processor, and ensure all processes shut down cleanly when the script is closed.
 
 ---
 
 ## API Endpoints
 
-### 1. `/ingest`
-**Purpose:**  
-Accepts a PDF file upload. The file is saved locally and a processing job is recorded in the SQLite database. The background processor handles further processing.
+### 1. Upload PDF File
 
-**Example Request (using curl):**
-```bash
-curl -X POST -F "file=@/path/to/document.pdf" http://localhost:5000/ingest
-Example Response:
-{
-  "status": "success",
-  "message": "File uploaded. Processing will be done in background."
-}
-```
-### 2. `/search`
-**Purpose:**  
-Receives a user query, computes its embedding, and searches the persistent FAISS index for the best matching document section. If the returned text exceeds a predefined word threshold, it is automatically summarized.
-**Example Request (using curl):**
-```bash
-curl -X POST -H "Content-Type: application/json" -d '{"query": "example search query"}' http://localhost:5000/search
-Example Response:
-{
-  "query": "example search query",
-  "result": {
-    "doc_id": "document.pdf",
-    "page_num": 2,
-    "score": 0.95,
-    "text": "The summarized content of the matching document..."
-}
-```
+- **Endpoint:** `/ingest`
+- **Purpose:**  
+  Upload a PDF file to be processed.
+- **Request Details:**  
+  - **Method:** POST  
+  - **Body:** A file named `file_to_upload.pdf` (submitted as form-data)
+- **Example Response:**  
+  ```json
+  {
+    "status": "success",
+    "message": "File uploaded. Processing will be done in background."
+  }
+  ```
+
+### 2. Search Documents
+
+- **Endpoint:** `/search`
+- **Purpose:**  
+  Search for content within the processed documents.
+- **Request Details:**  
+  - **Method:** POST  
+  - **Content-Type:** application/json
+  - **Body:** 
+  ```json
+  {
+  "query": "example search query"
+  }
+  ```
+
+- **Example Response:**  
+  ```json
+  {
+    "query": "example search query",
+    "result": {
+      "doc_id": "document.pdf",
+      "page_num": 2,
+      "score": 0.95,
+      "text": "The summarized content of the matching document..."
+    }
+  }
+  ```
+
+---
 
 ## Architecture Summary
 
-- **Database:**
-A SQLite database records file ingestion jobs and stores document chunks with computed embeddings.
+### Database:
+A SQLite database records file upload jobs and stores document chunks along with their computed embeddings.
 
-- **Indexing:**
-FAISS is used for fast semantic search. A persistent index and corresponding metadata are maintained on disk and loaded by the API server for efficient query handling.
+### Indexing:
+FAISS is used for fast semantic search. A persistent index and its metadata are stored on disk and loaded into memory by the API server.
 
-- **Background Processing:**
-A separate processor continuously polls the database, processes new PDF files, computes embeddings, and updates the persistent index.
+### Background Processing:
+A separate processor continuously polls the database for new files, extracts text, computes embeddings, and updates the index.
 
-- **Process Control:**
-A launch script manages the setting of environment variables and the start/stop of the API server and processor processes.
+### Process Control:
+A launch script manages the environment setup and starts/stops both the API server and the background processor.
 
-This system is engineered for efficiency and scalability, with a clear separation between user-facing operations and intensive processing tasks. The design ensures that users receive prompt responses to their queries while heavy processing is handled asynchronously.
+---
+
+This system is designed for efficiency and scalability, ensuring that users receive prompt search responses while heavy processing tasks are handled asynchronously in the background.
 
 ---
