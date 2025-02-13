@@ -105,7 +105,6 @@ embedding_model = OpenAIEmbeddings(openai_api_key=api_key)
 # Create the Flask application
 app = Flask(__name__)
 
-# /ingest endpoint for file uploads. The file is saved and a job is recorded in the database.
 @app.route('/upload', methods=['POST'])
 def upload():
     if 'file' not in request.files:
@@ -127,7 +126,6 @@ def upload():
 
     return jsonify({"status": "File uploaded successfully."})
 
-# Merged /search endpoint: perform search and, if needed, summarize long results.
 @app.route('/search', methods=['POST'])
 def search():
     data = request.get_json()
