@@ -2,7 +2,7 @@
 # launch.sh
 
 # Set the OpenAI API key (replace with your actual key or use a secure method)
-export OPENAI_API_KEY="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"
+export OPENAI_API_KEY="api-key"
 
 # Define a cleanup function to kill only the child processes spawned by this script.
 cleanup() {
