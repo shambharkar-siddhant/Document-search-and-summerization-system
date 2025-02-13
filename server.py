@@ -15,7 +15,7 @@ UPLOAD_FOLDER = "uploads"
 PERSISTENT_INDEX_FILE = "faiss_index.bin"
 METADATA_FILE = "metadata.json"
 LENGTH_THRESHOLD = 200  # If text exceeds 200 words, we summarize it
-api_key = "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"
+api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
 # Ensure the uploads folder exists
