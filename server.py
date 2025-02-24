@@ -8,13 +8,14 @@ from openai import OpenAI
 from flask import Flask, request, jsonify
 from datetime import datetime
 from langchain_openai import OpenAIEmbeddings
+import time
 
 # Configuration
 DATABASE_FILE = "database.db"
 UPLOAD_FOLDER = "uploads"
 PERSISTENT_INDEX_FILE = "faiss_index.bin"
 METADATA_FILE = "metadata.json"
-LENGTH_THRESHOLD = 200  # If text exceeds 200 words, we summarize it
+LENGTH_THRESHOLD = 300  # If text exceeds 300 words, we summarize it
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
@@ -57,6 +58,18 @@ def load_persistent_index_cached():
     global_metadata = metadata
     global_index_mtime = mtime
     return global_index, global_metadata
+
+
+summary_cache = {}
+
+def get_summary(text):
+    if text in summary_cache:
+        return summary_cache[text]
+    
+    summary = summarizer.summarize(text, "short")
+    summary_cache[text] = summary
+    return summary
+
 
 # Summarizer class for generating a concise version of long text using OpenAI ChatCompletion
 class Summarizer:
@@ -153,19 +166,22 @@ def search():
             meta = metadata[idx]
             score = 1 / (1 + distances[0][i])
             text = meta.get("text", "")
+
             # If the returned text is too long, summarize it
             if len(text.split()) > LENGTH_THRESHOLD:
-                text = summarizer.summarize(text, "short")
+                text = get_summary(text)
             best_result = {
                 "doc_id": meta.get("doc_id"),
                 "page_num": meta.get("page_num"),
                 "score": score,
                 "text": text
             }
+
     if best_result:
         return jsonify({"query": query, "result": best_result})
     else:
         return jsonify({"query": query, "result": None})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
